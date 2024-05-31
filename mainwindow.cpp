@@ -1,50 +1,15 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "QCompleter"
-#include "QSlider"
-#include <QtSql/QSqlDatabase>
-#include <QtSql>
+#include <QCompleter>
+#include <QSlider>
+#include <QFile>
+#include <QStringList>
 #include <QDebug>
-
-
-void printFirstRows(const QSqlDatabase &db, int rowCount) {
-    if (!db.isOpen()) {
-        qDebug() << "Database not open!";
-        return;
-    }
-
-    QSqlQuery query("SELECT * FROM your_table_name"); // Replace 'your_table_name' with your actual table name
-
-    int columnCount = query.record().count();
-
-    int rowCounter = 0;
-    while (query.next() && rowCounter < rowCount) {
-        for (int i = 0; i < columnCount; i++) {
-            qDebug() << query.value(i).toString();
-        }
-        rowCounter++;
-        qDebug() << "----------"; // Just for separation of rows
-    }
-}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-
-    // QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    // db.setDatabaseName("car_prices.sql");
-    // db.open();
-    // // QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-
-    // if (!db.open()) {
-    //     qDebug() << "Error: Could not connect to database.";
-    // }
-
-    // printFirstRows(db, 5); // Print the first 5 rows
-
-    // db.close();
-
 
     ui->setupUi(this);
     ui->yearHorizontalSlider->setRange(1800, 2024);
