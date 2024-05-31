@@ -15,6 +15,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->yearHorizontalSlider->setRange(1800, 2024);
     ui->yearHorizontalSlider->setSingleStep(1);
 
+    ui->conditionHorizontalSlider->setRange(1, 100);
+    ui->conditionHorizontalSlider->setSingleStep(1);
+
+    ui->mileageHorizontalSlider->setRange(0, 100000);
+    ui->mileageHorizontalSlider->setSingleStep(1);
+
     // connecting Slider to LineEdit
     connect(ui->yearHorizontalSlider, &QSlider::sliderMoved, this, [=]{
         int val = ui->yearHorizontalSlider->value();
@@ -28,6 +34,37 @@ MainWindow::MainWindow(QWidget *parent)
         // We'll change val here if needed
         ui->yearHorizontalSlider->setValue(val);
     });
+
+
+
+    connect(ui->conditionHorizontalSlider, &QSlider::sliderMoved, this, [=]{
+        int val = ui->conditionHorizontalSlider->value();
+        // We'll change val here if needed
+        ui->conditionLineEdit->setText(QString::number(val));
+    });
+
+    // connecting LineEdit to Slider
+    connect(ui->conditionLineEdit, &QLineEdit::textChanged, this, [=]{
+        int val = ui->conditionLineEdit->text().toInt();
+        // We'll change val here if needed
+        ui->conditionHorizontalSlider->setValue(val);
+    });
+
+
+
+    connect(ui->mileageHorizontalSlider, &QSlider::sliderMoved, this, [=]{
+        int val = ui->mileageHorizontalSlider->value();
+        // We'll change val here if needed
+        ui->mileageLineEdit->setText(QString::number(val));
+    });
+
+    // connecting LineEdit to Slider
+    connect(ui->mileageLineEdit, &QLineEdit::textChanged, this, [=]{
+        int val = ui->mileageLineEdit->text().toInt();
+        // We'll change val here if needed
+        ui->mileageHorizontalSlider->setValue(val);
+    });
+
 
 
     // TODO: using QCompleter and QLineEdit, add fields for inputing text with search (for typing brand names, model names etc.)
@@ -46,3 +83,4 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
