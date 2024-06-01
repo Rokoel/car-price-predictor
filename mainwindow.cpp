@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QStringList>
 #include <QDebug>
+#include <map>
 
 /*!
   Returns and connects to the lineEdit a case-insensitive QCompleter it created
@@ -35,6 +36,11 @@ void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdi
         slider->setValue(val);
     });
 }
+
+std::map <QString, QStringList> brand_names_selections;
+std::map <QString, QCompleter*> brand_names_completers;
+std::map <QString, QStringList> model_names_selections;
+std::map <QString, QCompleter*> model_names_completers;
 
 QString capitalize_first(const QString word) {
     if (word.size() == 0) {
@@ -81,16 +87,57 @@ MainWindow::MainWindow(QWidget *parent)
     while (!file.atEnd()) {
         QByteArray line = file.readLine();
         QList paramList = line.split(',');
-        QString brand_name = paramList[1];
-        QString model_name = paramList[2];
-        brandNamesWordList.append(capitalize_first(brand_name)); // brand
-        modelsWordList.append(capitalize_first(model_name)); // model
+
+        QString brand_name = capitalize_first(paramList[1]);
+        QString model_name = capitalize_first(paramList[2]);
+
+        if (brand_names_selections.find(brand_name) == brand_names_selections.end()) {
+            QStringList a;
+            brand_names_selections[brand_name] = a;
+        }
+        brand_names_selections[brand_name].append(model_name);
+
+        if (model_names_selections.find(model_name) == model_names_selections.end()) {
+            QStringList a;
+            model_names_selections[model_name] = a;
+        }
+        model_names_selections[model_name].append(brand_name);
+
+        brandNamesWordList.append(brand_name); // brand
+        modelsWordList.append(model_name); // model
     }
     brandNamesWordList.removeDuplicates();
+    for (auto p : brand_names_selections) {
+        p.second.removeDuplicates();
+        brand_names_completers[p.first] = new QCompleter(p.second, this);
+        brand_names_completers[p.first]->setCaseSensitivity(Qt::CaseInsensitive);
+    }
     modelsWordList.removeDuplicates();
+    for (auto p : model_names_selections) {
+        p.second.removeDuplicates();
+        model_names_completers[p.first] = new QCompleter(p.second, this);
+        model_names_completers[p.first]->setCaseSensitivity(Qt::CaseInsensitive);
+    }
 
     QCompleter *brandNamesCompleter = setCaseInsensitiveCompleter(this, ui->brandLineEdit, brandNamesWordList);
     QCompleter *modelsCompleter = setCaseInsensitiveCompleter(this, ui->modelLineEdit, modelsWordList);
+
+    
+    this->connect(ui->brandLineEdit, &QLineEdit::textChanged, this, [=]{
+        if (brand_names_selections.find(ui->brandLineEdit->text()) == brand_names_selections.end()) {
+            ui->modelLineEdit->setCompleter(modelsCompleter);
+            return;
+        }
+        ui->modelLineEdit->setCompleter(brand_names_completers[ui->brandLineEdit->text()]);
+    });
+
+    this->connect(ui->modelLineEdit, &QLineEdit::textChanged, this, [=]{
+        if (model_names_selections.find(ui->modelLineEdit->text()) == model_names_selections.end()) {
+            ui->brandLineEdit->setCompleter(brandNamesCompleter);
+            return;
+        }
+        ui->brandLineEdit->setCompleter(model_names_completers[ui->modelLineEdit->text()]);
+    });
 }
 
 MainWindow::~MainWindow()
