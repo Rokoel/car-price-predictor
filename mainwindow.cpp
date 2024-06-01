@@ -118,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
         model_names_completers[p.first] = new QCompleter(p.second, this);
         model_names_completers[p.first]->setCaseSensitivity(Qt::CaseInsensitive);
     }
+    model_names_selections.erase(QString(""));
 
     QCompleter *brandNamesCompleter = setCaseInsensitiveCompleter(this, ui->brandLineEdit, brandNamesWordList);
     QCompleter *modelsCompleter = setCaseInsensitiveCompleter(this, ui->modelLineEdit, modelsWordList);
