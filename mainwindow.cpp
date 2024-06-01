@@ -6,56 +6,45 @@
 #include <QStringList>
 #include <QDebug>
 
+/*!
+  Returns and connects to the lineEdit a case-insensitive QCompleter it created
+  with the wordList it's been given.
+*/
+QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit, QStringList wordList) {
+    QCompleter *completer = new QCompleter(wordList, window);
+    completer->setCaseSensitivity(Qt::CaseInsensitive); // We don't need case sensitivity
+    lineEdit->setCompleter(completer);
+    return completer;
+}
+
+/*!
+  Connects slider to the lineEdit so that when the slider value is changed,
+  the lineEdit value changes as well and vice versa.
+*/
+void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */) {
+    // connecting Slider to LineEdit
+    window->connect(slider, &QSlider::valueChanged, window, [=]{
+        int val = slider->value();
+        // We'll change val here if needed using changeSliderValue(int*)
+        lineEdit->setText(QString::number(val));
+    });
+    // connecting LineEdit to Slider
+    window->connect(lineEdit, &QLineEdit::textChanged, window, [=]{
+        int val = lineEdit->text().toInt();
+        // We'll change val here if needed using changeLineEditValue(int*)
+        slider->setValue(val);
+    });
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-
     ui->setupUi(this);
 
-    // connecting Slider to LineEdit
-    connect(ui->yearHorizontalSlider, &QSlider::valueChanged, this, [=]{
-        int val = ui->yearHorizontalSlider->value();
-        // We'll change val here if needed
-        ui->yearLineEdit->setText(QString::number(val));
-    });
-
-    // connecting LineEdit to Slider
-    connect(ui->yearLineEdit, &QLineEdit::textChanged, this, [=]{
-        int val = ui->yearLineEdit->text().toInt();
-        // We'll change val here if needed
-        ui->yearHorizontalSlider->setValue(val);
-    });
-
-
-
-    connect(ui->conditionHorizontalSlider, &QSlider::valueChanged, this, [=]{
-        int val = ui->conditionHorizontalSlider->value();
-        // We'll change val here if needed
-        ui->conditionLineEdit->setText(QString::number(val));
-    });
-
-    // connecting LineEdit to Slider
-    connect(ui->conditionLineEdit, &QLineEdit::textChanged, this, [=]{
-        int val = ui->conditionLineEdit->text().toInt();
-        // We'll change val here if needed
-        ui->conditionHorizontalSlider->setValue(val);
-    });
-
-
-
-    connect(ui->mileageHorizontalSlider, &QSlider::valueChanged, this, [=]{
-        int val = ui->mileageHorizontalSlider->value();
-        // We'll change val here if needed
-        ui->mileageLineEdit->setText(QString::number(val));
-    });
-
-    // connecting LineEdit to Slider
-    connect(ui->mileageLineEdit, &QLineEdit::textChanged, this, [=]{
-        int val = ui->mileageLineEdit->text().toInt();
-        // We'll change val here if needed
-        ui->mileageHorizontalSlider->setValue(val);
-    });
+    setupSliderLineEdit(this, ui->yearHorizontalSlider, ui->yearLineEdit);
+    setupSliderLineEdit(this, ui->conditionHorizontalSlider, ui->conditionLineEdit);
+    setupSliderLineEdit(this, ui->mileageHorizontalSlider, ui->mileageLineEdit);
 
     ui->yearHorizontalSlider->setRange(1800, 2024);
     ui->yearHorizontalSlider->setSingleStep(1);
@@ -69,19 +58,25 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mileageHorizontalSlider->setSingleStep(1);
     ui->mileageHorizontalSlider->setValue(10000);
 
+    // year brand model trim body_type transmission vin state condition odometer color interior seller mmr selling_price sale_date
+    QFile file(":/car_prices.csv");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << file.errorString();
+    }
 
+    QStringList brandNamesWordList;
+    QStringList modelsWordList;
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+        QList paramList = line.split(',');
+        brandNamesWordList.append(paramList[1]); // brand
+        modelsWordList.append(paramList[2]); // model
+    }
+    brandNamesWordList.removeDuplicates();
+    modelsWordList.removeDuplicates();
 
-
-    // TODO: using QCompleter and QLineEdit, add fields for inputing text with search (for typing brand names, model names etc.)
-    // For each Qline edit it should look something like this:
-    // QStringList wordList;
-    // fill the wordlist with words from database
-
-    // QLineEdit *lineEdit = new QLineEdit(this);
-
-    // QCompleter *completer = new QCompleter(wordList, this);
-    // completer->setCaseSensitivity(Qt::CaseInsensitive); // We don't need case sensitivity
-    // lineEdit->setCompleter(completer);
+    QCompleter *brandNamesCompleter = setCaseInsensitiveCompleter(this, ui->brandLineEdit, brandNamesWordList);
+    QCompleter *modelsCompleter = setCaseInsensitiveCompleter(this, ui->modelLineEdit, modelsWordList);
 }
 
 MainWindow::~MainWindow()

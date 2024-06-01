@@ -27,6 +27,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(car-price-predictor
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        resources.qrc
     )
 target_link_libraries(car-price-predictor PRIVATE Qt6::Sql)
 # Define target properties for Android with Qt 6 as:
