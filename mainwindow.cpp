@@ -12,17 +12,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
 
     ui->setupUi(this);
-    ui->yearHorizontalSlider->setRange(1800, 2024);
-    ui->yearHorizontalSlider->setSingleStep(1);
-
-    ui->conditionHorizontalSlider->setRange(1, 100);
-    ui->conditionHorizontalSlider->setSingleStep(1);
-
-    ui->mileageHorizontalSlider->setRange(0, 100000);
-    ui->mileageHorizontalSlider->setSingleStep(1);
 
     // connecting Slider to LineEdit
-    connect(ui->yearHorizontalSlider, &QSlider::sliderMoved, this, [=]{
+    connect(ui->yearHorizontalSlider, &QSlider::valueChanged, this, [=]{
         int val = ui->yearHorizontalSlider->value();
         // We'll change val here if needed
         ui->yearLineEdit->setText(QString::number(val));
@@ -37,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    connect(ui->conditionHorizontalSlider, &QSlider::sliderMoved, this, [=]{
+    connect(ui->conditionHorizontalSlider, &QSlider::valueChanged, this, [=]{
         int val = ui->conditionHorizontalSlider->value();
         // We'll change val here if needed
         ui->conditionLineEdit->setText(QString::number(val));
@@ -52,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    connect(ui->mileageHorizontalSlider, &QSlider::sliderMoved, this, [=]{
+    connect(ui->mileageHorizontalSlider, &QSlider::valueChanged, this, [=]{
         int val = ui->mileageHorizontalSlider->value();
         // We'll change val here if needed
         ui->mileageLineEdit->setText(QString::number(val));
@@ -64,6 +56,19 @@ MainWindow::MainWindow(QWidget *parent)
         // We'll change val here if needed
         ui->mileageHorizontalSlider->setValue(val);
     });
+
+    ui->yearHorizontalSlider->setRange(1800, 2024);
+    ui->yearHorizontalSlider->setSingleStep(1);
+    ui->yearHorizontalSlider->setValue(2020);
+
+    ui->conditionHorizontalSlider->setRange(1, 100);
+    ui->conditionHorizontalSlider->setSingleStep(1);
+    ui->conditionHorizontalSlider->setValue(70);
+
+    ui->mileageHorizontalSlider->setRange(0, 100000);
+    ui->mileageHorizontalSlider->setSingleStep(1);
+    ui->mileageHorizontalSlider->setValue(10000);
+
 
 
 
