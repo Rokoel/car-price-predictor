@@ -36,6 +36,18 @@ void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdi
     });
 }
 
+QString capitalize_first(const QString word) {
+    if (word.size() == 0) {
+        return word;
+    }
+    QString to_return;
+    to_return.append(word[0].toUpper());
+    for (int i = 1; i < (int)word.size(); i++) {
+        to_return.append(word[i].toLower());
+    }
+    return to_return;
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -69,8 +81,10 @@ MainWindow::MainWindow(QWidget *parent)
     while (!file.atEnd()) {
         QByteArray line = file.readLine();
         QList paramList = line.split(',');
-        brandNamesWordList.append(paramList[1]); // brand
-        modelsWordList.append(paramList[2]); // model
+        QString brand_name = paramList[1];
+        QString model_name = paramList[2];
+        brandNamesWordList.append(capitalize_first(brand_name)); // brand
+        modelsWordList.append(capitalize_first(model_name)); // model
     }
     brandNamesWordList.removeDuplicates();
     modelsWordList.removeDuplicates();
