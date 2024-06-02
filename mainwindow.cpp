@@ -1,17 +1,22 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
 #include <QCompleter>
-#include <QSlider>
+#include <QDebug>
 #include <QFile>
+#include <QSlider>
 #include <QStringList>
 #include <QDebug>
-
+#include "predictor.cpp"
+#include "./ui_mainwindow.h"
+#include "dialog.h"
 
 /*!
  * Returns and connects to the lineEdit a case-insensitive QCompleter it created
  * with the wordList it's been given.
 */
-QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit, QStringList wordList) {
+QCompleter *setCaseInsensitiveCompleter(MainWindow *window,
+                                        QLineEdit *lineEdit,
+                                        QStringList wordList)
+{
     QCompleter *completer = new QCompleter(wordList, window);
     completer->setCaseSensitivity(Qt::CaseInsensitive); // We don't need case sensitivity
     lineEdit->setCompleter(completer);
@@ -21,7 +26,13 @@ QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit,
 /*!
  * Sets up two completers connected by a relation with wordlists.
 */
-void setCaseInsensitiveCompletersWithRelation(MainWindow *window, QMap<QString, QList<QString>> relation, QLineEdit *lineEditA, QLineEdit *lineEditB, QStringList wordListA, QStringList wordListB) {
+void setCaseInsensitiveCompletersWithRelation(MainWindow *window,
+                                              QMap<QString, QList<QString>> relation,
+                                              QLineEdit *lineEditA,
+                                              QLineEdit *lineEditB,
+                                              QStringList wordListA,
+                                              QStringList wordListB)
+{
     window->connect(lineEditA, &QLineEdit::textChanged, window, [=]{
         QString enteredTextInLineEditB = lineEditB->text();
         if (enteredTextInLineEditB.isEmpty()) { // if there's no text in second LineEdit
@@ -57,7 +68,10 @@ void setCaseInsensitiveCompletersWithRelation(MainWindow *window, QMap<QString, 
  *  createOrAppendToOneToManyRelation(relation, a, b);
  *  createOrAppendToOneToManyRelation(relation, b, a);
 */
-QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation, QString a, QString b) {
+QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation,
+                                                                 QString a,
+                                                                 QString b)
+{
     auto it = relation.find(a); // we are trying to find out if at least a part of this relation already exists
     if (it != relation.end()){ // if it does
         if (!relation[a].contains(b)) { // and if we don't have the entire relation already
@@ -74,15 +88,19 @@ QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, Q
  * Connects slider to the lineEdit so that when the slider value is changed,
  * the lineEdit value changes as well and vice versa.
 */
-void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */) {
+void setupSliderLineEdit(
+    MainWindow *window,
+    QSlider *slider,
+    QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */)
+{
     // connecting Slider to LineEdit
-    window->connect(slider, &QSlider::valueChanged, window, [=]{
+    window->connect(slider, &QSlider::valueChanged, window, [=] {
         int val = slider->value();
         // We'll change val here if needed using changeSliderValue(int*)
         lineEdit->setText(QString::number(val));
     });
     // connecting LineEdit to Slider
-    window->connect(lineEdit, &QLineEdit::textChanged, window, [=]{
+    window->connect(lineEdit, &QLineEdit::textChanged, window, [=] {
         int val = lineEdit->text().toInt();
         // We'll change val here if needed using changeLineEditValue(int*)
         slider->setValue(val);
@@ -110,18 +128,14 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Рассчет стоимости автомобиля");
 
     setupSliderLineEdit(this, ui->yearHorizontalSlider, ui->yearLineEdit);
-    setupSliderLineEdit(this, ui->conditionHorizontalSlider, ui->conditionLineEdit);
     setupSliderLineEdit(this, ui->mileageHorizontalSlider, ui->mileageLineEdit);
 
-    ui->yearHorizontalSlider->setRange(1800, 2024);
+    ui->yearHorizontalSlider->setRange(1990, 2024);
     ui->yearHorizontalSlider->setSingleStep(1);
     ui->yearHorizontalSlider->setValue(2020);
-
-    ui->conditionHorizontalSlider->setRange(1, 100);
-    ui->conditionHorizontalSlider->setSingleStep(1);
-    ui->conditionHorizontalSlider->setValue(70);
 
     ui->mileageHorizontalSlider->setRange(0, 100000);
     ui->mileageHorizontalSlider->setSingleStep(1);
@@ -133,6 +147,7 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << file.errorString();
     }
 
+    Predictor pred;
     QStringList brandNamesWordList;
     QStringList modelsWordList;
     QMap<QString, QList<QString>> brandToModel;
@@ -146,6 +161,8 @@ MainWindow::MainWindow(QWidget *parent)
         createOrAppendToOneToManyRelation(brandToModel, brandName, modelName);
         createOrAppendToOneToManyRelation(brandToModel, modelName, brandName);
 
+        pred.feedRow(brandName, modelName, paramList[0].toInt(), paramList[9].toInt(), paramList[14].toInt());
+
         brandNamesWordList.append(brandName);
         brandNamesWordList.removeDuplicates();
         modelsWordList.append(modelName);
@@ -153,10 +170,29 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     setCaseInsensitiveCompletersWithRelation(this, brandToModel, ui->brandLineEdit, ui->modelLineEdit, brandNamesWordList, modelsWordList);
+
+    this->connect(ui->pushButtonPredict, &QPushButton::released, [=] {
+            QString textBrandName = ui->brandLineEdit->text();
+            QString textModelName = ui->modelLineEdit->text();
+            int year = ui->yearLineEdit->text().toInt();
+            int odometer = ui->mileageLineEdit->text().toInt();
+            double price;
+            price = pred.fit(textBrandName, textModelName, year, odometer);
+            ui->labelPrice->setText(QString::number(price));
+
+    });
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    Dialog window;
+    window.setModal(true);
+    window.exec();
+
 }
 
