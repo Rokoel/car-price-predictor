@@ -26,7 +26,7 @@ struct Row {
 
 class Predictor {
     std::vector <Row> cars;
-    int lstLen = 10;
+    int lstLen = 1;
 
 public:
     Predictor() {

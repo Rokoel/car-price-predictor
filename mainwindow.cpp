@@ -116,7 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupSliderLineEdit(this, ui->conditionHorizontalSlider, ui->conditionLineEdit);
     setupSliderLineEdit(this, ui->mileageHorizontalSlider, ui->mileageLineEdit);
 
-    ui->yearHorizontalSlider->setRange(1800, 2024);
+    ui->yearHorizontalSlider->setRange(1990, 2024);
     ui->yearHorizontalSlider->setSingleStep(1);
     ui->yearHorizontalSlider->setValue(2020);
 
