@@ -5,11 +5,11 @@
 #include <QFile>
 #include <QStringList>
 #include <QDebug>
-#include <map>
+
 
 /*!
-  Returns and connects to the lineEdit a case-insensitive QCompleter it created
-  with the wordList it's been given.
+ * Returns and connects to the lineEdit a case-insensitive QCompleter it created
+ * with the wordList it's been given.
 */
 QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit, QStringList wordList) {
     QCompleter *completer = new QCompleter(wordList, window);
@@ -19,8 +19,60 @@ QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit,
 }
 
 /*!
-  Connects slider to the lineEdit so that when the slider value is changed,
-  the lineEdit value changes as well and vice versa.
+ * Sets up two completers connected by a relation with wordlists.
+*/
+void setCaseInsensitiveCompletersWithRelation(MainWindow *window, QMap<QString, QList<QString>> relation, QLineEdit *lineEditA, QLineEdit *lineEditB, QStringList wordListA, QStringList wordListB) {
+    window->connect(lineEditA, &QLineEdit::textChanged, window, [=]{
+        QString enteredTextInLineEditB = lineEditB->text();
+        if (enteredTextInLineEditB.isEmpty()) { // if there's no text in second LineEdit
+            setCaseInsensitiveCompleter(window, lineEditA, wordListA); // then it means we give out the entire wordlist of suggestions (setting up the completer)
+        } else { // if there's some text in second lineEdit
+            auto foundBIter = relation.find(enteredTextInLineEditB); // we try to find a relation with the entered text
+            if (foundBIter != relation.end()) { // if we find this relation
+                QList<QString> listOfFoundAs = foundBIter.value(); // we recieve a list of suggestions for our lineEdit
+                setCaseInsensitiveCompleter(window, lineEditA, listOfFoundAs); // which we set up it with
+            }
+        }
+    });
+
+    // we complete all the steps above in regards to the other lineEdit
+    window->connect(lineEditB, &QLineEdit::textChanged, window, [=]{
+        QString enteredTextInLineEditA = lineEditA->text();
+        if (enteredTextInLineEditA.isEmpty()) {
+            setCaseInsensitiveCompleter(window, lineEditB, wordListB);
+        } else {
+            auto foundAIter = relation.find(enteredTextInLineEditA);
+            if (foundAIter != relation.end()) {
+                QList<QString> listOfFoundBs = foundAIter.value();
+                setCaseInsensitiveCompleter(window, lineEditB, listOfFoundBs);
+            }
+        }
+    });
+}
+
+/*!
+ * Returns a modified relation map between two Qstrings. Relation being set up in this function is one-to-many.
+ * If one wants to set up a many-to-many relationship, they can use the function twice. Example of such many-to-many
+ * relationship setup:
+ *  createOrAppendToOneToManyRelation(relation, a, b);
+ *  createOrAppendToOneToManyRelation(relation, b, a);
+*/
+QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation, QString a, QString b) {
+    auto it = relation.find(a); // we are trying to find out if at least a part of this relation already exists
+    if (it != relation.end()){ // if it does
+        if (!relation[a].contains(b)) { // and if we don't have the entire relation already
+            relation[a].append(b); // we append the second part of this relation (a.k.a. "create" the relation between the QStrings)
+        }
+    } else { // if we don't have the "one" part of this relation
+        relation[a] = *new QList<QString>; // we just create the entire relation
+        relation[a].append(b); // "connecting" two strings
+    }
+    return relation;
+}
+
+/*!
+ * Connects slider to the lineEdit so that when the slider value is changed,
+ * the lineEdit value changes as well and vice versa.
 */
 void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */) {
     // connecting Slider to LineEdit
@@ -37,21 +89,20 @@ void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdi
     });
 }
 
-std::map <QString, QStringList> brand_names_selections;
-std::map <QString, QCompleter*> brand_names_completers;
-std::map <QString, QStringList> model_names_selections;
-std::map <QString, QCompleter*> model_names_completers;
-
-QString capitalize_first(const QString word) {
+/*!
+ * Returns the Qstring in the following form: "Word",
+ * meaning it capitilizes the first letter while also lowering the rest of the word.
+ */
+QString capitalizeFirst(const QString word) {
     if (word.size() == 0) {
         return word;
     }
-    QString to_return;
-    to_return.append(word[0].toUpper());
+    QString capitilizedWord;
+    capitilizedWord.append(word[0].toUpper());
     for (int i = 1; i < (int)word.size(); i++) {
-        to_return.append(word[i].toLower());
+        capitilizedWord.append(word[i].toLower());
     }
-    return to_return;
+    return capitilizedWord;
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -84,61 +135,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     QStringList brandNamesWordList;
     QStringList modelsWordList;
+    QMap<QString, QList<QString>> brandToModel;
     while (!file.atEnd()) {
         QByteArray line = file.readLine();
         QList paramList = line.split(',');
 
-        QString brand_name = capitalize_first(paramList[1]);
-        QString model_name = capitalize_first(paramList[2]);
+        QString brandName = capitalizeFirst(paramList[1]);
+        QString modelName = capitalizeFirst(paramList[2]);
 
-        if (brand_names_selections.find(brand_name) == brand_names_selections.end()) {
-            QStringList a;
-            brand_names_selections[brand_name] = a;
-        }
-        brand_names_selections[brand_name].append(model_name);
+        createOrAppendToOneToManyRelation(brandToModel, brandName, modelName);
+        createOrAppendToOneToManyRelation(brandToModel, modelName, brandName);
 
-        if (model_names_selections.find(model_name) == model_names_selections.end()) {
-            QStringList a;
-            model_names_selections[model_name] = a;
-        }
-        model_names_selections[model_name].append(brand_name);
-
-        brandNamesWordList.append(brand_name); // brand
-        modelsWordList.append(model_name); // model
+        brandNamesWordList.append(brandName);
+        brandNamesWordList.removeDuplicates();
+        modelsWordList.append(modelName);
+        modelsWordList.removeDuplicates();
     }
-    brandNamesWordList.removeDuplicates();
-    for (auto p : brand_names_selections) {
-        p.second.removeDuplicates();
-        brand_names_completers[p.first] = new QCompleter(p.second, this);
-        brand_names_completers[p.first]->setCaseSensitivity(Qt::CaseInsensitive);
-    }
-    modelsWordList.removeDuplicates();
-    for (auto p : model_names_selections) {
-        p.second.removeDuplicates();
-        model_names_completers[p.first] = new QCompleter(p.second, this);
-        model_names_completers[p.first]->setCaseSensitivity(Qt::CaseInsensitive);
-    }
-    model_names_selections.erase(QString(""));
 
-    QCompleter *brandNamesCompleter = setCaseInsensitiveCompleter(this, ui->brandLineEdit, brandNamesWordList);
-    QCompleter *modelsCompleter = setCaseInsensitiveCompleter(this, ui->modelLineEdit, modelsWordList);
-
-    
-    this->connect(ui->brandLineEdit, &QLineEdit::textChanged, this, [=]{
-        if (brand_names_selections.find(ui->brandLineEdit->text()) == brand_names_selections.end()) {
-            ui->modelLineEdit->setCompleter(modelsCompleter);
-            return;
-        }
-        ui->modelLineEdit->setCompleter(brand_names_completers[ui->brandLineEdit->text()]);
-    });
-
-    this->connect(ui->modelLineEdit, &QLineEdit::textChanged, this, [=]{
-        if (model_names_selections.find(ui->modelLineEdit->text()) == model_names_selections.end()) {
-            ui->brandLineEdit->setCompleter(brandNamesCompleter);
-            return;
-        }
-        ui->brandLineEdit->setCompleter(model_names_completers[ui->modelLineEdit->text()]);
-    });
+    setCaseInsensitiveCompletersWithRelation(this, brandToModel, ui->brandLineEdit, ui->modelLineEdit, brandNamesWordList, modelsWordList);
 }
 
 MainWindow::~MainWindow()
