@@ -1,18 +1,23 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
 #include <QCompleter>
-#include <QSlider>
+#include <QDebug>
 #include <QFile>
+#include <QSlider>
 #include <QStringList>
 #include <QDebug>
 #include "predictor.cpp"
-
+#include "./ui_mainwindow.h"
+#include <map>
+#include "dialog.h"
 
 /*!
  * Returns and connects to the lineEdit a case-insensitive QCompleter it created
  * with the wordList it's been given.
 */
-QCompleter *setCaseInsensitiveCompleter(MainWindow *window, QLineEdit *lineEdit, QStringList wordList) {
+QCompleter *setCaseInsensitiveCompleter(MainWindow *window,
+                                        QLineEdit *lineEdit,
+                                        QStringList wordList)
+{
     QCompleter *completer = new QCompleter(wordList, window);
     completer->setCaseSensitivity(Qt::CaseInsensitive); // We don't need case sensitivity
     lineEdit->setCompleter(completer);
@@ -75,15 +80,19 @@ QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, Q
  * Connects slider to the lineEdit so that when the slider value is changed,
  * the lineEdit value changes as well and vice versa.
 */
-void setupSliderLineEdit(MainWindow *window, QSlider *slider, QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */) {
+void setupSliderLineEdit(
+    MainWindow *window,
+    QSlider *slider,
+    QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */)
+{
     // connecting Slider to LineEdit
-    window->connect(slider, &QSlider::valueChanged, window, [=]{
+    window->connect(slider, &QSlider::valueChanged, window, [=] {
         int val = slider->value();
         // We'll change val here if needed using changeSliderValue(int*)
         lineEdit->setText(QString::number(val));
     });
     // connecting LineEdit to Slider
-    window->connect(lineEdit, &QLineEdit::textChanged, window, [=]{
+    window->connect(lineEdit, &QLineEdit::textChanged, window, [=] {
         int val = lineEdit->text().toInt();
         // We'll change val here if needed using changeLineEditValue(int*)
         slider->setValue(val);
@@ -113,16 +122,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     setupSliderLineEdit(this, ui->yearHorizontalSlider, ui->yearLineEdit);
-    setupSliderLineEdit(this, ui->conditionHorizontalSlider, ui->conditionLineEdit);
     setupSliderLineEdit(this, ui->mileageHorizontalSlider, ui->mileageLineEdit);
 
     ui->yearHorizontalSlider->setRange(1990, 2024);
     ui->yearHorizontalSlider->setSingleStep(1);
     ui->yearHorizontalSlider->setValue(2020);
-
-    ui->conditionHorizontalSlider->setRange(1, 100);
-    ui->conditionHorizontalSlider->setSingleStep(1);
-    ui->conditionHorizontalSlider->setValue(70);
 
     ui->mileageHorizontalSlider->setRange(0, 100000);
     ui->mileageHorizontalSlider->setSingleStep(1);
@@ -168,11 +172,20 @@ MainWindow::MainWindow(QWidget *parent)
             double price;
             price = pred.fit(textBrandName, textModelName, year, condition, odometer);
             ui->labelPrice->setText(QString::number(price));
+
     });
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    Dialog window;
+    window.setModal(true);
+    window.exec();
+
 }
 
