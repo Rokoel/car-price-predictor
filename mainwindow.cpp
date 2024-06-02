@@ -153,7 +153,7 @@ MainWindow::MainWindow(QWidget *parent)
         createOrAppendToOneToManyRelation(brandToModel, brandName, modelName);
         createOrAppendToOneToManyRelation(brandToModel, modelName, brandName);
 
-        pred.feedRow(brandName, modelName, paramList[0].toInt(), paramList[8].toInt(), paramList[9].toInt(), paramList[14].toInt());
+        pred.feedRow(brandName, modelName, paramList[0].toInt(), paramList[9].toInt(), paramList[14].toInt());
 
         brandNamesWordList.append(brandName);
         brandNamesWordList.removeDuplicates();
@@ -167,10 +167,9 @@ MainWindow::MainWindow(QWidget *parent)
             QString textBrandName = ui->brandLineEdit->text();
             QString textModelName = ui->modelLineEdit->text();
             int year = ui->yearLineEdit->text().toInt();
-            int condition = ui->conditionLineEdit->text().toInt();
             int odometer = ui->mileageLineEdit->text().toInt();
             double price;
-            price = pred.fit(textBrandName, textModelName, year, condition, odometer);
+            price = pred.fit(textBrandName, textModelName, year, odometer);
             ui->labelPrice->setText(QString::number(price));
 
     });

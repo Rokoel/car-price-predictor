@@ -4,14 +4,13 @@
 
 struct Row {
     QString brandName, modelName;
-    int year, condition, odometer;
+    int year, odometer;
     double price;
 
-    Row(QString brandName_, QString modelName_, int year_, int condition_, int odometer_, double price_)
+    Row(QString brandName_, QString modelName_, int year_, int odometer_, double price_)
         : brandName(brandName_)
         , modelName(modelName_)
         , year(year_)
-        , condition(condition_)
         , odometer(odometer_)
         , price(price_) {}
 
@@ -20,7 +19,7 @@ struct Row {
     }
 
     double diff(Row other) {
-        return abs(year - other.year) + abs(condition - other.condition) + abs(odometer - other.odometer);
+        return abs(year - other.year) + abs(odometer - other.odometer);
     }
 };
 
@@ -34,8 +33,8 @@ public:
         cars = c;
     }
 
-    void feedRow(const QString brandName_, const QString modelName_, const int year_, const int condition_, const int odometer_, const int price_) {
-        Row newRow(brandName_, modelName_, year_, condition_, odometer_, price_);
+    void feedRow(const QString brandName_, const QString modelName_, const int year_, const int odometer_, const int price_) {
+        Row newRow(brandName_, modelName_, year_, odometer_, price_);
         cars.push_back(newRow);
     }
 
@@ -43,8 +42,8 @@ public:
         lstLen = newVal;
     }
 
-    double fit(const QString brandName_, const QString modelName_, const int year_, const int condition_, const int odometer_) const {
-        Row toFit(brandName_, modelName_, year_, condition_, odometer_, 0);
+    double fit(const QString brandName_, const QString modelName_, const int year_, const int odometer_) const {
+        Row toFit(brandName_, modelName_, year_, odometer_, 0);
         std::vector <Row> comp;
         for (Row r: cars) {
             if (comp.size() < lstLen) {
