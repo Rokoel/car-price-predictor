@@ -7,7 +7,6 @@
 #include <QDebug>
 #include "predictor.cpp"
 #include "./ui_mainwindow.h"
-#include <map>
 #include "dialog.h"
 
 /*!
@@ -27,7 +26,13 @@ QCompleter *setCaseInsensitiveCompleter(MainWindow *window,
 /*!
  * Sets up two completers connected by a relation with wordlists.
 */
-void setCaseInsensitiveCompletersWithRelation(MainWindow *window, QMap<QString, QList<QString>> relation, QLineEdit *lineEditA, QLineEdit *lineEditB, QStringList wordListA, QStringList wordListB) {
+void setCaseInsensitiveCompletersWithRelation(MainWindow *window,
+                                              QMap<QString, QList<QString>> relation,
+                                              QLineEdit *lineEditA,
+                                              QLineEdit *lineEditB,
+                                              QStringList wordListA,
+                                              QStringList wordListB)
+{
     window->connect(lineEditA, &QLineEdit::textChanged, window, [=]{
         QString enteredTextInLineEditB = lineEditB->text();
         if (enteredTextInLineEditB.isEmpty()) { // if there's no text in second LineEdit
@@ -63,7 +68,10 @@ void setCaseInsensitiveCompletersWithRelation(MainWindow *window, QMap<QString, 
  *  createOrAppendToOneToManyRelation(relation, a, b);
  *  createOrAppendToOneToManyRelation(relation, b, a);
 */
-QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation, QString a, QString b) {
+QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation,
+                                                                 QString a,
+                                                                 QString b)
+{
     auto it = relation.find(a); // we are trying to find out if at least a part of this relation already exists
     if (it != relation.end()){ // if it does
         if (!relation[a].contains(b)) { // and if we don't have the entire relation already
@@ -120,6 +128,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Рассчет стоимости автомобиля");
 
     setupSliderLineEdit(this, ui->yearHorizontalSlider, ui->yearLineEdit);
     setupSliderLineEdit(this, ui->mileageHorizontalSlider, ui->mileageLineEdit);
@@ -139,7 +148,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     Predictor pred;
-
     QStringList brandNamesWordList;
     QStringList modelsWordList;
     QMap<QString, QList<QString>> brandToModel;
