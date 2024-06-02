@@ -6,6 +6,7 @@
 #include <QStringList>
 #include "./ui_mainwindow.h"
 #include <map>
+#include "dialog.h"
 
 /*!
   Returns and connects to the lineEdit a case-insensitive QCompleter it created
@@ -151,3 +152,12 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    Dialog window;
+    window.setModal(true);
+    window.exec();
+
+}
+

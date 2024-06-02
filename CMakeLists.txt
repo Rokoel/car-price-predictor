@@ -28,7 +28,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         resources.qrc
-        newWindow.ui
+        dialog.h dialog.cpp dialog.ui
+
     )
 target_link_libraries(car-price-predictor PRIVATE Qt6::Sql)
 # Define target properties for Android with Qt 6 as:
