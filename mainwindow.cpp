@@ -13,6 +13,7 @@
  * Returns and connects to the lineEdit a case-insensitive QCompleter it created
  * with the wordList it's been given.
 */
+
 QCompleter *setCaseInsensitiveCompleter(MainWindow *window,
                                         QLineEdit *lineEdit,
                                         QStringList wordList)
@@ -26,6 +27,7 @@ QCompleter *setCaseInsensitiveCompleter(MainWindow *window,
 /*!
  * Sets up two completers connected by a relation with wordlists.
 */
+
 void setCaseInsensitiveCompletersWithRelation(MainWindow *window,
                                               QMap<QString, QList<QString>> relation,
                                               QLineEdit *lineEditA,
@@ -35,25 +37,29 @@ void setCaseInsensitiveCompletersWithRelation(MainWindow *window,
 {
     window->connect(lineEditA, &QLineEdit::textChanged, window, [=]{
         QString enteredTextInLineEditB = lineEditB->text();
-        if (enteredTextInLineEditB.isEmpty()) { // if there's no text in second LineEdit
-            setCaseInsensitiveCompleter(window, lineEditA, wordListA); // then it means we give out the entire wordlist of suggestions (setting up the completer)
-        } else { // if there's some text in second lineEdit
-            auto foundBIter = relation.find(enteredTextInLineEditB); // we try to find a relation with the entered text
-            if (foundBIter != relation.end()) { // if we find this relation
-                QList<QString> listOfFoundAs = foundBIter.value(); // we recieve a list of suggestions for our lineEdit
-                setCaseInsensitiveCompleter(window, lineEditA, listOfFoundAs); // which we set up it with
+        if (enteredTextInLineEditB.isEmpty())
+        {                                                                       // if there's no text in second LineEdit
+            setCaseInsensitiveCompleter(window, lineEditA, wordListA);          // then it means we give out the entire wordlist of suggestions (setting up the completer)
+        } else {                                                                // if there's some text in second lineEdit
+            auto foundBIter = relation.find(enteredTextInLineEditB);            // we try to find a relation with the entered text
+            if (foundBIter != relation.end()) {                                 // if we find this relation
+                QList<QString> listOfFoundAs = foundBIter.value();              // we recieve a list of suggestions for our lineEdit
+                setCaseInsensitiveCompleter(window, lineEditA, listOfFoundAs);  // which we set up it with
             }
         }
     });
 
     // we complete all the steps above in regards to the other lineEdit
+
     window->connect(lineEditB, &QLineEdit::textChanged, window, [=]{
         QString enteredTextInLineEditA = lineEditA->text();
-        if (enteredTextInLineEditA.isEmpty()) {
+        if (enteredTextInLineEditA.isEmpty())
+        {
             setCaseInsensitiveCompleter(window, lineEditB, wordListB);
         } else {
             auto foundAIter = relation.find(enteredTextInLineEditA);
-            if (foundAIter != relation.end()) {
+            if (foundAIter != relation.end())
+            {
                 QList<QString> listOfFoundBs = foundAIter.value();
                 setCaseInsensitiveCompleter(window, lineEditB, listOfFoundBs);
             }
@@ -68,18 +74,21 @@ void setCaseInsensitiveCompletersWithRelation(MainWindow *window,
  *  createOrAppendToOneToManyRelation(relation, a, b);
  *  createOrAppendToOneToManyRelation(relation, b, a);
 */
+
 QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, QList<QString>> &relation,
                                                                  QString a,
                                                                  QString b)
 {
-    auto it = relation.find(a); // we are trying to find out if at least a part of this relation already exists
-    if (it != relation.end()){ // if it does
-        if (!relation[a].contains(b)) { // and if we don't have the entire relation already
-            relation[a].append(b); // we append the second part of this relation (a.k.a. "create" the relation between the QStrings)
+    auto it = relation.find(a);             // we are trying to find out if at least a part of this relation already exists
+    if (it != relation.end())
+    {                                       // if it does
+        if (!relation[a].contains(b))
+        {                                   // and if we don't have the entire relation already
+            relation[a].append(b);          // we append the second part of this relation (a.k.a. "create" the relation between the QStrings)
         }
-    } else { // if we don't have the "one" part of this relation
-        relation[a] = *new QList<QString>; // we just create the entire relation
-        relation[a].append(b); // "connecting" two strings
+    } else {                                // if we don't have the "one" part of this relation
+        relation[a] = *new QList<QString>;  // we just create the entire relation
+        relation[a].append(b);              // "connecting" two strings
     }
     return relation;
 }
@@ -88,19 +97,22 @@ QMap<QString, QList<QString>> &createOrAppendToOneToManyRelation(QMap<QString, Q
  * Connects slider to the lineEdit so that when the slider value is changed,
  * the lineEdit value changes as well and vice versa.
 */
+
 void setupSliderLineEdit(
     MainWindow *window,
     QSlider *slider,
-    QLineEdit *lineEdit /*, void (*changeSliderValue)(int*), void (*changeLineEditValue)(int*) */)
+    QLineEdit *lineEdit)
 {
-    // connecting Slider to LineEdit
-    window->connect(slider, &QSlider::valueChanged, window, [=] {
+        // connecting Slider to LineEdit
+    window->connect(slider, &QSlider::valueChanged, window, [=]
+    {
         int val = slider->value();
         // We'll change val here if needed using changeSliderValue(int*)
         lineEdit->setText(QString::number(val));
     });
-    // connecting LineEdit to Slider
-    window->connect(lineEdit, &QLineEdit::textChanged, window, [=] {
+        // connecting LineEdit to Slider
+    window->connect(lineEdit, &QLineEdit::textChanged, window, [=]
+    {
         int val = lineEdit->text().toInt();
         // We'll change val here if needed using changeLineEditValue(int*)
         slider->setValue(val);
@@ -111,13 +123,17 @@ void setupSliderLineEdit(
  * Returns the Qstring in the following form: "Word",
  * meaning it capitilizes the first letter while also lowering the rest of the word.
  */
-QString capitalizeFirst(const QString word) {
-    if (word.size() == 0) {
+
+QString capitalizeFirst(const QString word)
+{
+    if (word.size() == 0)
+    {
         return word;
     }
     QString capitilizedWord;
     capitilizedWord.append(word[0].toUpper());
-    for (int i = 1; i < (int)word.size(); i++) {
+    for (int i = 1; i < (int)word.size(); i++)
+    {
         capitilizedWord.append(word[i].toLower());
     }
     return capitilizedWord;
@@ -142,8 +158,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mileageHorizontalSlider->setValue(10000);
 
     // year brand model trim body_type transmission vin state condition odometer color interior seller mmr selling_price sale_date
+
     QFile file(":/car_prices.csv");
-    if (!file.open(QIODevice::ReadOnly)) {
+    if (!file.open(QIODevice::ReadOnly))
+    {
         qDebug() << file.errorString();
     }
 
@@ -151,7 +169,8 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList brandNamesWordList;
     QStringList modelsWordList;
     QMap<QString, QList<QString>> brandToModel;
-    while (!file.atEnd()) {
+    while (!file.atEnd())
+    {
         QByteArray line = file.readLine();
         QList paramList = line.split(',');
 
@@ -171,9 +190,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     setCaseInsensitiveCompletersWithRelation(this, brandToModel, ui->brandLineEdit, ui->modelLineEdit, brandNamesWordList, modelsWordList);
 
-    this->connect(ui->pushButtonPredict, &QPushButton::released, [=] {
+    this->connect(ui->pushButtonPredict, &QPushButton::released, [=]
+    {
             QString textBrandName = ui->brandLineEdit->text();
             QString textModelName = ui->modelLineEdit->text();
+            if (textBrandName.isEmpty() || textModelName.isEmpty())
+            {
+                return;
+            }
             int year = ui->yearLineEdit->text().toInt();
             int odometer = ui->mileageLineEdit->text().toInt();
             double price;
